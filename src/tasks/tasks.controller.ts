@@ -8,11 +8,14 @@ import {
   Delete,
   Patch,
   Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { Task, TaskStatus } from './task.model';
 import * as uuid from 'uuid/v1';
-import { CreateTaskDTO } from './dto/create-task.dto';
+import { CreateTaskPutDTO } from './dto/create-task.put.dto';
+import { CreateTaskPostDTO } from './dto/create-task.post.dto';
 import { GetTaskFilterDTO } from './dto/get-tasks-filter.dto';
 
 @Controller('tasks')
@@ -34,25 +37,19 @@ export class TasksController {
   }
 
   @Post()
-  postTask(
-    @Body('title') title: string,
-    @Body('description') description: string,
-  ): Task {
-    const dto: CreateTaskDTO = {
-      id: uuid(),
-      title,
-      description,
-    };
-    return this.putTask(dto);
+  @UsePipes(ValidationPipe)
+  postTask(@Body() dto: CreateTaskPostDTO): Task {
+    return this.putTask({ ...dto, id: uuid() });
   }
 
   @Put()
-  putTask(@Body() createTaskDTO: CreateTaskDTO): Task {
+  @UsePipes(ValidationPipe)
+  putTask(@Body() createTaskDTO: CreateTaskPutDTO): Task {
     return this.tasks.createTask(createTaskDTO);
   }
 
   @Delete(':id')
-  deleteTask(@Body('id') id): void {
+  deleteTask(@Param('id') id): void {
     this.tasks.deleteTaskById(id);
   }
 
